@@ -254,7 +254,10 @@ class AgentOrchestrator:
     def _log(self, results: Dict[str, Any], message: str):
         """Add timestamped log entry"""
         timestamp = datetime.now().isoformat()
-        log_entry = f"[{timestamp}] {message}"
+        log_entry = {
+            "timestamp": timestamp,
+            "message": message
+        }
         results["logs"].append(log_entry)
         logger.info(message)
     
