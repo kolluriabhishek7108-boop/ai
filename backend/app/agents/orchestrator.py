@@ -254,7 +254,7 @@ class AgentOrchestrator:
         return result
     
     def _log(self, results: Dict[str, Any], message: str):
-        """Add timestamped log entry"""
+        """Add timestamped log entry and broadcast via WebSocket"""
         timestamp = datetime.now().isoformat()
         log_entry = {
             "timestamp": timestamp,
@@ -262,6 +262,12 @@ class AgentOrchestrator:
         }
         results["logs"].append(log_entry)
         logger.info(message)
+        
+        # Broadcast log via WebSocket if project_id is set
+        if self.project_id:
+            asyncio.create_task(
+                websocket_manager.broadcast_log(self.project_id, message)
+            )
     
     def _extract_api_endpoints(self, api_result: Dict[str, Any]) -> List[str]:
         """Extract API endpoints from API architecture"""
