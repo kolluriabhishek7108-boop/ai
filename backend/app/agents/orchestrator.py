@@ -11,6 +11,7 @@ from app.agents.performance_agent import PerformanceAgent
 from app.agents.documentation_agent import DocumentationAgent
 from app.agents.code_review_agent import CodeReviewAgent
 from app.agents.image_generator_agent import ImageGeneratorAgent
+from app.services.websocket_manager import websocket_manager
 import logging
 import asyncio
 from datetime import datetime
@@ -23,8 +24,9 @@ class AgentOrchestrator:
     to generate production-ready applications
     """
     
-    def __init__(self, llm_provider: str = "emergent"):
+    def __init__(self, llm_provider: str = "emergent", project_id: Optional[str] = None):
         self.llm_provider = llm_provider
+        self.project_id = project_id
         
         # Initialize all 12 specialized agents
         self.agents = {
