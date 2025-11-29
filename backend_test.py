@@ -504,7 +504,7 @@ class BackendTester:
     
     def run_all_tests(self):
         """Run all backend tests"""
-        print(f"🚀 STARTING COMPREHENSIVE BACKEND TESTING")
+        print(f"🚀 STARTING COMPREHENSIVE BACKEND TESTING - PHASE 3")
         print(f"📅 Test Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 80)
         
@@ -513,6 +513,12 @@ class BackendTester:
         self.test_projects_endpoints()
         self.test_requirements_analysis()
         self.test_agent_imports()
+        
+        # Phase 3 specific tests
+        print("\n" + "🏗️" * 20 + " PHASE 3: CODE GENERATION ENGINE TESTS " + "🏗️" * 20)
+        self.test_code_generation_imports()
+        self.test_code_generation_endpoints()
+        self.test_generator_validation()
         
         # Print summary
         print("\n" + "=" * 80)
