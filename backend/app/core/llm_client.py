@@ -1,50 +1,62 @@
 import os
+import asyncio
 from typing import Dict, Any, Optional, List
-import requests
-from app.core.config import settings
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Import Emergent LLM integration
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 class LLMClient:
-    """Unified LLM client supporting Emergent LLM Key and Gemini API"""
+    """Unified LLM client using Emergent LLM Key"""
     
-    def __init__(self, provider: str = "emergent"):
+    def __init__(self, provider: str = "openai", model: str = "gpt-4o-mini"):
         self.provider = provider
-        self.emergent_key = settings.EMERGENT_LLM_KEY
-        self.gemini_key = settings.GEMINI_API_KEY
+        self.model = model
+        self.emergent_key = os.environ.get("EMERGENT_LLM_KEY", "")
+        self.gemini_key = os.environ.get("GEMINI_API_KEY", "")
         
-    def generate(self, prompt: str, model: str = "gpt-4o", temperature: float = 0.7, max_tokens: int = 2000) -> str:
-        """Generate text using the configured LLM provider"""
-        if self.provider == "emergent":
-            return self._generate_emergent(prompt, model, temperature, max_tokens)
-        elif self.provider == "gemini":
-            return self._generate_gemini(prompt, temperature, max_tokens)
-        else:
-            raise ValueError(f"Unknown provider: {self.provider}")
-    
-    def _generate_emergent(self, prompt: str, model: str, temperature: float, max_tokens: int) -> str:
-        """Generate using Emergent LLM Key (OpenAI/Anthropic/Google)"""
-        # Using OpenAI-compatible endpoint
-        url = "https://api.openai.com/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {self.emergent_key}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": model,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": temperature,
-            "max_tokens": max_tokens
-        }
-        
+    async def generate_async(self, prompt: str, system_message: str = "You are a helpful AI assistant.", session_id: str = "default") -> str:
+        """Generate text using Emergent LLM integration (async)"""
         try:
-            response = requests.post(url, json=payload, headers=headers, timeout=60)
-            response.raise_for_status()
-            data = response.json()
-            return data["choices"][0]["message"]["content"]
+            chat = LlmChat(
+                api_key=self.emergent_key,
+                session_id=session_id,
+                system_message=system_message
+            )
+            
+            # Set the model and provider
+            chat.with_model(self.provider, self.model)
+            
+            # Create user message
+            user_message = UserMessage(text=prompt)
+            
+            # Send message and get response
+            response = await chat.send_message(user_message)
+            return response
         except Exception as e:
             return f"Error generating with Emergent LLM: {str(e)}"
     
+    def generate(self, prompt: str, model: str = None, temperature: float = 0.7, max_tokens: int = 2000) -> str:
+        """Generate text synchronously (wrapper for async)"""
+        try:
+            # Run async method in event loop
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(self.generate_async(prompt))
+            loop.close()
+            return result
+        except Exception as e:
+            # Fallback to Gemini if emergent fails
+            if self.gemini_key:
+                return self._generate_gemini(prompt, temperature, max_tokens)
+            return f"Error: {str(e)}"
+    
     def _generate_gemini(self, prompt: str, temperature: float, max_tokens: int) -> str:
-        """Generate using Gemini API directly"""
+        """Generate using Gemini API directly as fallback"""
+        import requests
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={self.gemini_key}"
         headers = {"Content-Type": "application/json"}
         payload = {
@@ -77,9 +89,9 @@ Provide a JSON response with:
 - architecture: suggested architecture pattern
 - estimated_time: development time estimate
 
-Be specific and practical."""
+Be specific and practical. Return ONLY valid JSON."""
         
-        response = self.generate(prompt, temperature=0.3)
+        response = self.generate(prompt)
         # Parse JSON from response
         try:
             import json
