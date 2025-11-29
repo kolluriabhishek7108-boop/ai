@@ -31,9 +31,9 @@ function App() {
 
         {/* Routes */}
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<EnhancedHome />} />
           <Route path="/projects" element={<ProjectDashboard />} />
-          <Route path="/projects/:id" element={<ProjectDetails />} />
+          <Route path="/projects/:id" element={<EnhancedProjectDetails />} />
           <Route path="/workflow" element={<AgentWorkflow />} />
         </Routes>
       </BrowserRouter>
