@@ -699,6 +699,10 @@ class BackendTester:
         self.test_code_generation_endpoints()
         self.test_generator_validation()
         
+        # Phase 3 new endpoints testing
+        print("\n" + "🆕" * 20 + " PHASE 3: NEW ENDPOINTS TESTING " + "🆕" * 20)
+        self.test_phase3_new_endpoints()
+        
         # Print summary
         print("\n" + "=" * 80)
         print("📊 TEST SUMMARY")
