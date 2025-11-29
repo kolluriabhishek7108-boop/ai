@@ -20,8 +20,10 @@ export const projectsAPI = {
   update: (id, data) => apiClient.put(`/projects/${id}`, data),
   delete: (id) => apiClient.delete(`/projects/${id}`),
   generate: (id) => apiClient.post(`/projects/${id}/generate`),
+  regenerate: (id) => apiClient.post(`/projects/${id}/regenerate`),
   getStatus: (id) => apiClient.get(`/projects/${id}/status`),
   getCode: (id) => apiClient.get(`/projects/${id}/code`),
+  download: (id) => apiClient.get(`/projects/${id}/download`, { responseType: 'blob' }),
 };
 
 // Agents API
