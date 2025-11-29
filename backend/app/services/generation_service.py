@@ -9,7 +9,6 @@ class GenerationService:
     """Service for handling application generation"""
     
     def __init__(self):
-        self.orchestrator = AgentOrchestrator()
         self.project_service = ProjectService()
     
     async def generate_app(self, project_id: str):
@@ -29,8 +28,11 @@ class GenerationService:
                 ProjectUpdate(status="in_progress", progress=10)
             )
             
+            # Create orchestrator with project_id for WebSocket broadcasting
+            orchestrator = AgentOrchestrator(project_id=project_id)
+            
             # Generate application using orchestrator
-            result = await self.orchestrator.generate_application({
+            result = await orchestrator.generate_application({
                 "name": project.name,
                 "requirements": project.requirements,
                 "app_type": project.app_type,
