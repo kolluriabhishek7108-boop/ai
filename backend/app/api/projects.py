@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi.responses import FileResponse
 from typing import List
+import os
 from app.models.project import Project, ProjectCreate, ProjectUpdate
 from app.services.project_service import ProjectService
 from app.services.generation_service import GenerationService
