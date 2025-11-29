@@ -475,6 +475,185 @@ class BackendTester:
             self.failed += 1
             self.errors.append(f"Code generation endpoints test error: {e}")
     
+    def test_phase3_new_endpoints(self):
+        """Test Phase 3 newly implemented endpoints: /download and /regenerate"""
+        print("\n🆕 TESTING PHASE 3 NEW ENDPOINTS")
+        print("-" * 40)
+        
+        # Create a test project for endpoint testing
+        test_project = {
+            "name": "Phase 3 Test Project",
+            "description": "Testing new download and regenerate endpoints",
+            "requirements": "Build a React web application for testing Phase 3 endpoints",
+            "app_type": "web",
+            "target_platforms": ["react"],
+            "architecture_type": "modular"
+        }
+        
+        project_id = None
+        
+        try:
+            # 1. Create test project
+            response = requests.post(
+                f"{API_BASE}/projects",
+                json=test_project,
+                headers={"Content-Type": "application/json"},
+                timeout=15
+            )
+            
+            if response.status_code == 200:
+                project_data = response.json()
+                project_id = project_data.get('id')
+                print(f"✅ Phase 3 test project created: {project_id}")
+                self.passed += 1
+            else:
+                print(f"❌ Failed to create test project: {response.status_code}")
+                self.failed += 1
+                self.errors.append(f"Test project creation failed: {response.status_code}")
+                return
+                
+        except Exception as e:
+            print(f"❌ Error creating test project: {e}")
+            self.failed += 1
+            self.errors.append(f"Test project creation error: {e}")
+            return
+        
+        # 2. Test /download endpoint with non-existent project ID
+        print("\n   🔍 Testing download endpoint with non-existent project...")
+        try:
+            fake_id = "nonexistent-project-id-12345"
+            download_response = requests.get(f"{API_BASE}/projects/{fake_id}/download", timeout=10)
+            if download_response.status_code == 404:
+                print("✅ Download endpoint correctly returns 404 for non-existent project")
+                self.passed += 1
+            else:
+                print(f"❌ Download endpoint should return 404 for non-existent project, got {download_response.status_code}")
+                self.failed += 1
+                self.errors.append(f"Download endpoint wrong status for non-existent project: {download_response.status_code}")
+        except Exception as e:
+            print(f"❌ Download endpoint test error: {e}")
+            self.failed += 1
+            self.errors.append(f"Download endpoint test error: {e}")
+        
+        # 3. Test /download endpoint with pending project (should return 400)
+        print("\n   🔍 Testing download endpoint with pending project...")
+        try:
+            download_response = requests.get(f"{API_BASE}/projects/{project_id}/download", timeout=10)
+            if download_response.status_code == 400:
+                response_data = download_response.json()
+                detail = response_data.get('detail', '')
+                if 'not completed' in detail.lower():
+                    print("✅ Download endpoint correctly returns 400 for pending project")
+                    print(f"   Message: {detail}")
+                    self.passed += 1
+                else:
+                    print(f"❌ Download endpoint 400 response has unexpected message: {detail}")
+                    self.failed += 1
+                    self.errors.append(f"Download endpoint unexpected 400 message: {detail}")
+            else:
+                print(f"❌ Download endpoint should return 400 for pending project, got {download_response.status_code}")
+                self.failed += 1
+                self.errors.append(f"Download endpoint wrong status for pending project: {download_response.status_code}")
+        except Exception as e:
+            print(f"❌ Download endpoint pending project test error: {e}")
+            self.failed += 1
+            self.errors.append(f"Download endpoint pending project test error: {e}")
+        
+        # 4. Test /regenerate endpoint with non-existent project ID
+        print("\n   🔍 Testing regenerate endpoint with non-existent project...")
+        try:
+            fake_id = "nonexistent-project-id-12345"
+            regen_response = requests.post(f"{API_BASE}/projects/{fake_id}/regenerate", timeout=10)
+            if regen_response.status_code == 404:
+                print("✅ Regenerate endpoint correctly returns 404 for non-existent project")
+                self.passed += 1
+            else:
+                print(f"❌ Regenerate endpoint should return 404 for non-existent project, got {regen_response.status_code}")
+                self.failed += 1
+                self.errors.append(f"Regenerate endpoint wrong status for non-existent project: {regen_response.status_code}")
+        except Exception as e:
+            print(f"❌ Regenerate endpoint test error: {e}")
+            self.failed += 1
+            self.errors.append(f"Regenerate endpoint test error: {e}")
+        
+        # 5. Test /regenerate endpoint with existing project
+        print("\n   🔍 Testing regenerate endpoint with existing project...")
+        try:
+            regen_response = requests.post(f"{API_BASE}/projects/{project_id}/regenerate", timeout=10)
+            if regen_response.status_code in [200, 202]:
+                response_data = regen_response.json()
+                message = response_data.get('message', '')
+                if 'regeneration started' in message.lower():
+                    print("✅ Regenerate endpoint working correctly")
+                    print(f"   Message: {message}")
+                    print(f"   Status: {response_data.get('status', 'unknown')}")
+                    self.passed += 1
+                else:
+                    print(f"❌ Regenerate endpoint unexpected message: {message}")
+                    self.failed += 1
+                    self.errors.append(f"Regenerate endpoint unexpected message: {message}")
+            else:
+                print(f"❌ Regenerate endpoint failed: {regen_response.status_code}")
+                print(f"   Response: {regen_response.text}")
+                self.failed += 1
+                self.errors.append(f"Regenerate endpoint returned {regen_response.status_code}")
+        except Exception as e:
+            print(f"❌ Regenerate endpoint existing project test error: {e}")
+            self.failed += 1
+            self.errors.append(f"Regenerate endpoint existing project test error: {e}")
+        
+        # 6. Verify existing endpoints still work after regenerate
+        print("\n   🔍 Verifying existing endpoints still work...")
+        try:
+            # Test /generate endpoint
+            gen_response = requests.post(f"{API_BASE}/projects/{project_id}/generate", timeout=10)
+            if gen_response.status_code in [200, 202]:
+                print("✅ Generate endpoint still working after regenerate")
+                self.passed += 1
+            else:
+                print(f"❌ Generate endpoint failed after regenerate: {gen_response.status_code}")
+                self.failed += 1
+                self.errors.append(f"Generate endpoint failed after regenerate: {gen_response.status_code}")
+            
+            # Test /status endpoint
+            status_response = requests.get(f"{API_BASE}/projects/{project_id}/status", timeout=10)
+            if status_response.status_code == 200:
+                status_data = status_response.json()
+                print("✅ Status endpoint still working after regenerate")
+                print(f"   Current status: {status_data.get('status', 'unknown')}")
+                
+                # Check agent_logs format (should be dict format now)
+                logs = status_data.get('logs', [])
+                if isinstance(logs, list):
+                    print("✅ Agent logs returned as list format")
+                    if logs and isinstance(logs[0], dict):
+                        print("✅ Agent logs entries are in dict format (Pydantic fix verified)")
+                        self.passed += 1
+                    elif not logs:
+                        print("✅ Agent logs empty (expected for new project)")
+                        self.passed += 1
+                    else:
+                        print(f"❌ Agent logs entries should be dict format, got: {type(logs[0])}")
+                        self.failed += 1
+                        self.errors.append(f"Agent logs format issue: expected dict, got {type(logs[0])}")
+                else:
+                    print(f"❌ Agent logs should be list, got: {type(logs)}")
+                    self.failed += 1
+                    self.errors.append(f"Agent logs should be list, got {type(logs)}")
+                    
+                self.passed += 1
+            else:
+                print(f"❌ Status endpoint failed after regenerate: {status_response.status_code}")
+                self.failed += 1
+                self.errors.append(f"Status endpoint failed after regenerate: {status_response.status_code}")
+                
+        except Exception as e:
+            print(f"❌ Existing endpoints verification error: {e}")
+            self.failed += 1
+            self.errors.append(f"Existing endpoints verification error: {e}")
+        
+        print(f"\n✅ Phase 3 endpoint testing completed for project: {project_id}")
+    
     def test_generator_validation(self):
         """Test code generation service validation"""
         print("\n✅ TESTING GENERATOR VALIDATION")
