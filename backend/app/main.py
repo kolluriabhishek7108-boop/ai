@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api import projects, agents
+from app.api import projects, agents, websocket
 import logging
 
 # Configure logging
@@ -30,6 +30,7 @@ app.add_middleware(
 # Include routers with /api prefix
 app.include_router(projects.router, prefix=settings.API_PREFIX)
 app.include_router(agents.router, prefix=settings.API_PREFIX)
+app.include_router(websocket.router, prefix=settings.API_PREFIX)
 
 @app.get("/api/")
 async def root():
