@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend Testing for Advanced Multi-Agent Application Generator - Phase 2
-Tests all 12 agents API endpoints, projects API, requirements analysis, and service health
+Comprehensive Backend Testing for Advanced Multi-Agent Application Generator - Phase 3
+Tests code generation engine, all 12 agents API endpoints, projects API, requirements analysis, and service health
 """
 
 import requests
