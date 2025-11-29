@@ -244,11 +244,29 @@ class AgentOrchestrator:
         if not agent:
             raise ValueError(f"Agent '{agent_name}' not found")
         
+        # Broadcast agent start via WebSocket
+        if self.project_id:
+            await websocket_manager.broadcast_agent_update(
+                self.project_id, 
+                agent_name, 
+                "started", 
+                f"Starting {agent_name} agent"
+            )
+        
         # Execute agent (synchronous for now, can be made async)
         result = agent.execute(task)
         
         duration = (datetime.now() - start).total_seconds()
         self.execution_times[agent_name] = duration
+        
+        # Broadcast agent completion via WebSocket
+        if self.project_id:
+            await websocket_manager.broadcast_agent_update(
+                self.project_id, 
+                agent_name, 
+                "completed", 
+                f"Completed {agent_name} agent in {duration:.2f}s"
+            )
         
         logger.info(f"Agent '{agent_name}' completed in {duration:.2f}s")
         return result
