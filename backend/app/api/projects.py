@@ -95,3 +95,63 @@ async def get_generated_code(project_id: str):
         "project_id": project_id,
         "code": project.generated_code
     }
+
+@router.get("/{project_id}/download")
+async def download_generated_code(project_id: str):
+    """Download the generated code package as ZIP"""
+    project = await project_service.get_project(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    if project.status != "completed":
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Project generation not completed yet. Current status: {project.status}"
+        )
+    
+    # Get the package path from generated_code metadata
+    package_path = None
+    if project.generated_code and isinstance(project.generated_code, dict):
+        package_path = project.generated_code.get("package_path")
+    
+    if not package_path or not os.path.exists(package_path):
+        raise HTTPException(
+            status_code=404, 
+            detail="Generated package not found. Please regenerate the application."
+        )
+    
+    # Return the ZIP file
+    filename = f"{project.name.lower().replace(' ', '_')}.zip"
+    return FileResponse(
+        path=package_path,
+        media_type="application/zip",
+        filename=filename,
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+
+@router.post("/{project_id}/regenerate")
+async def regenerate_application(project_id: str, background_tasks: BackgroundTasks):
+    """Regenerate the application with the same configuration"""
+    project = await project_service.get_project(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Reset project status for regeneration
+    await project_service.update_project(project_id, ProjectUpdate(
+        status="pending",
+        progress=0,
+        agent_logs=[],
+        generated_code=None
+    ))
+    
+    # Start generation in background
+    background_tasks.add_task(generation_service.generate_app, project_id)
+    
+    return {
+        "message": "Application regeneration started",
+        "project_id": project_id,
+        "status": "in_progress",
+        "note": "Previous generation data has been cleared"
+    }
