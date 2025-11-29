@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import '@/App.css';
-import Home from './pages/Home';
+import EnhancedHome from './pages/EnhancedHome';
 import ProjectDashboard from './pages/ProjectDashboard';
-import ProjectDetails from './pages/ProjectDetails';
+import EnhancedProjectDetails from './pages/EnhancedProjectDetails';
 import AgentWorkflow from './pages/AgentWorkflow';
 
 function App() {
