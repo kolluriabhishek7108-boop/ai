@@ -9,18 +9,18 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # Database
-    MONGO_URL: str = os.getenv("MONGO_URL", "mongodb://localhost:27017")
-    DB_NAME: str = os.getenv("DB_NAME", "agent_generator")
+    MONGO_URL: str = "mongodb://localhost:27017"
+    DB_NAME: str = "agent_generator"
     
     # API
     API_PREFIX: str = "/api"
     
     # CORS
-    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "*").split(",")
+    CORS_ORIGINS: str = "*"
     
     # LLM Integration
-    EMERGENT_LLM_KEY: str = os.getenv("EMERGENT_LLM_KEY", "")
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    EMERGENT_LLM_KEY: str = ""
+    GEMINI_API_KEY: str = ""
     
     # Agent Configuration
     MAX_AGENTS: int = 12
@@ -29,5 +29,9 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+    
+    @property
+    def cors_origins_list(self) -> List[str]:
+        return self.CORS_ORIGINS.split(",") if self.CORS_ORIGINS else ["*"]
 
 settings = Settings()
