@@ -166,6 +166,33 @@ backend:
                   
                   🎯 CORE FUNCTIONALITY: 100% WORKING
                   All critical code generation features operational!"
+      - working: true
+        agent: "main"
+        comment: "✅ MISSING ENDPOINTS IMPLEMENTED:
+                  
+                  🔧 New Endpoints Added to /app/backend/app/api/projects.py:
+                  1. GET /api/projects/{id}/download
+                     - Downloads generated code package as ZIP file
+                     - Returns FileResponse with proper headers
+                     - Validates project completion status
+                     - Checks if package file exists
+                  
+                  2. POST /api/projects/{id}/regenerate
+                     - Regenerates application with same configuration
+                     - Resets project status and clears previous data
+                     - Starts generation in background
+                     - Returns confirmation message
+                  
+                  🐛 PYDANTIC VALIDATION FIX:
+                  - Fixed agent_logs format in /app/backend/app/agents/orchestrator.py
+                  - Changed from string format to dict format: {timestamp, message}
+                  - Now complies with Pydantic model: List[Dict[str, Any]]
+                  
+                  ✅ All Python linting passed
+                  ✅ Backend restarted successfully
+                  ✅ Health check confirmed: http://localhost:8001/api/health
+                  
+                  📋 READY FOR TESTING: New endpoints need verification"
 
   - task: "Phase 2: Implement all 12 specialized agents"
     implemented: true
