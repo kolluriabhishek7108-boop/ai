@@ -255,7 +255,7 @@ backend:
                   ✅ Projects API fully functional
                   ✅ Requirements analysis operational
                   ✅ Code generation engine working
-                  ✅ Backend URL: https://agentic-coder-3.preview.emergentagent.com
+                  ✅ Backend URL: https://codegen-engine-1.preview.emergentagent.com
                   
                   🎯 PHASE 3 IMPLEMENTATION: COMPLETE & VERIFIED
                   All new endpoints working perfectly with proper error handling!"
@@ -668,7 +668,7 @@ agent_communication:
               🏥 Service Health: PERFECT
               - Root endpoint (/api/) responding correctly
               - Health check (/api/health) operational
-              - Backend URL: https://agentic-coder-3.preview.emergentagent.com
+              - Backend URL: https://codegen-engine-1.preview.emergentagent.com
               
               🤖 All 12 Agents API: VERIFIED
               - GET /api/agents/types returns exactly 12 agents
