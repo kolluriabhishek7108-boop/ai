@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { projectsAPI } from '../services/api';
-import { Loader2, Play, Download, FileCode, AlertCircle, RefreshCw, Code } from 'lucide-react';
+import websocketService from '../services/websocket';
+import { Loader2, Play, Download, FileCode, AlertCircle, RefreshCw, Code, Wifi, WifiOff } from 'lucide-react';
 import AgentMonitor from '../components/AgentMonitor';
 import CodePreview from '../components/CodePreview';
 
@@ -15,13 +16,55 @@ const EnhancedProjectDetails = () => {
   const [error, setError] = useState(null);
   const [logs, setLogs] = useState([]);
   const [activeTab, setActiveTab] = useState('monitor'); // monitor, code, logs
+  const [wsConnected, setWsConnected] = useState(false);
+  const [agentUpdates, setAgentUpdates] = useState([]);
 
-  useEffect(() => {
-    loadProject();
-    const interval = setInterval(checkStatus, 2000); // Poll every 2 seconds
-    return () => clearInterval(interval);
-  }, [id]);
+  // Handle WebSocket messages
+  const handleWebSocketMessage = useCallback((data) => {
+    console.log('Received WebSocket message:', data);
 
+    switch (data.type) {
+      case 'connection':
+        console.log('✅ WebSocket connection established');
+        break;
+
+      case 'status_update':
+        setProject(prev => prev ? { ...prev, status: data.status, progress: data.progress } : null);
+        break;
+
+      case 'agent_update':
+        setAgentUpdates(prev => [...prev, {
+          agent: data.agent,
+          status: data.agent_status,
+          message: data.message,
+          timestamp: new Date().toISOString()
+        }]);
+        break;
+
+      case 'log':
+        setLogs(prev => [...prev, {
+          timestamp: new Date().toISOString(),
+          message: data.message,
+          level: data.level
+        }]);
+        break;
+
+      case 'completion':
+        setProject(prev => prev ? {
+          ...prev,
+          status: data.success ? 'completed' : 'failed'
+        } : null);
+        if (data.success) {
+          loadProject(); // Reload full project data
+        }
+        break;
+
+      default:
+        console.log('Unknown message type:', data.type);
+    }
+  }, []);
+
+  // Load project data
   const loadProject = async () => {
     try {
       const response = await projectsAPI.getById(id);
@@ -34,20 +77,27 @@ const EnhancedProjectDetails = () => {
     }
   };
 
-  const checkStatus = async () => {
-    try {
-      const response = await projectsAPI.getStatus(id);
-      if (response.data.logs) {
-        setLogs(response.data.logs);
+  // Connect to WebSocket on mount
+  useEffect(() => {
+    loadProject();
+
+    // Connect WebSocket
+    websocketService.connect(
+      id,
+      handleWebSocketMessage,
+      (error) => {
+        console.error('WebSocket error:', error);
+      },
+      (connected) => {
+        setWsConnected(connected);
       }
-      // Reload full project if status changed
-      if (project && response.data.status !== project.status) {
-        loadProject();
-      }
-    } catch (err) {
-      // Silent fail for polling
-    }
-  };
+    );
+
+    // Cleanup on unmount
+    return () => {
+      websocketService.disconnect();
+    };
+  }, [id, handleWebSocketMessage]);
 
   const handleGenerate = async () => {
     setGenerating(true);
