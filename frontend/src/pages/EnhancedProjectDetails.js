@@ -306,6 +306,7 @@ const EnhancedProjectDetails = () => {
         <div className="flex space-x-2 mb-6">
           {[
             { key: 'monitor', label: 'Agent Monitor', icon: Loader2 },
+            { key: 'preview', label: 'Live Preview', icon: Eye },
             { key: 'code', label: 'Code Preview', icon: Code },
             { key: 'logs', label: 'Activity Logs', icon: FileCode }
           ].map(tab => (
@@ -335,9 +336,18 @@ const EnhancedProjectDetails = () => {
             <AgentMonitor currentAgent={currentAgent} logs={logs} />
           )}
 
+          {activeTab === 'preview' && (
+            <LivePreview 
+              projectId={project.id}
+              projectName={project.name}
+              generatedCode={project.generated_code}
+              status={project.status}
+            />
+          )}
+
           {activeTab === 'code' && (
             <div className="bg-white/5 backdrop-blur-lg border border-purple-500/20 rounded-xl p-6">
-              <CodePreview projectName={project.name} />
+              <CodePreview projectName={project.name} files={project.generated_code} />
             </div>
           )}
 
