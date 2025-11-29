@@ -3,9 +3,10 @@ import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { projectsAPI } from '../services/api';
 import websocketService from '../services/websocket';
-import { Loader2, Play, Download, FileCode, AlertCircle, RefreshCw, Code, Wifi, WifiOff } from 'lucide-react';
+import { Loader2, Play, Download, FileCode, AlertCircle, RefreshCw, Code, Wifi, WifiOff, Eye } from 'lucide-react';
 import AgentMonitor from '../components/AgentMonitor';
 import CodePreview from '../components/CodePreview';
+import LivePreview from '../components/LivePreview';
 
 const EnhancedProjectDetails = () => {
   const { id } = useParams();
