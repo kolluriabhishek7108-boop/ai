@@ -1,22 +1,19 @@
-import React, { useState } from 'react';
-import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
-import python from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
-import css from 'react-syntax-highlighter/dist/esm/languages/hljs/css';
-import json from 'react-syntax-highlighter/dist/esm/languages/hljs/json';
-import { FileCode, ChevronRight, Search, X } from 'lucide-react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import Editor from '@monaco-editor/react';
+import { FileCode, ChevronRight, Search, X, Edit3, Eye, Save, Download, RotateCcw, Copy, Check, AlertCircle, Wand2 } from 'lucide-react';
 
-// Register languages
-SyntaxHighlighter.registerLanguage('javascript', js);
-SyntaxHighlighter.registerLanguage('python', python);
-SyntaxHighlighter.registerLanguage('css', css);
-SyntaxHighlighter.registerLanguage('json', json);
-
-const CodePreview = ({ files, projectName }) => {
+const CodePreview = ({ files, projectName, onFilesChange }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedFolders, setExpandedFolders] = useState(new Set());
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedFiles, setEditedFiles] = useState({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState({});
+  const [copied, setCopied] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [isFormatting, setIsFormatting] = useState(false);
+  const editorRef = useRef(null);
+  const monacoRef = useRef(null);
 
   // Sample files structure for demo
   const fileStructure = files || {
